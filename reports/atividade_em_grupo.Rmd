@@ -19,7 +19,7 @@ theme_set(theme_bw())
 ```
 
 ## __Overview__
-Esses dados tem como fonte o INMET e representam a temperatura e o volume de chuva ao longo das semanas das cidades de Campina Grande e JoÃ£o Pessoa entre os anos de 2008 atÃ© 2019. Logo abaixo, vemos uma amostra desses dados. 
+Esses dados tem como fonte o INMET e representam a temperatura e o volume de chuva ao longo das semanas das cidades de Campina Grande e João Pessoa entre os anos de 2008 até 2019. Logo abaixo, vemos uma amostra desses dados. 
 
 
 ```{r}
@@ -81,8 +81,8 @@ Analisando as distribuiÃ§Ãµes de temperatura ao longo dos meses, notamos uma cer
 
 
 
-## __A distribuiÃ§Ã£o Ã© diferente em meses especÃ­ficos?__ PERGUNTA PRA RESPONDER !!!!
-<p>Vamos agora agrupar o volume de precipitaÃ§Ã£o de chuva por meses e analisar o resultado.</p> 
+## __A distribuição é diferente em meses específicos?__ PERGUNTA PRA RESPONDER !!!!
+<p>Vamos agora agrupar o volume de precipitação de chuva por meses e analisar o resultado.</p> 
 
 ```{r}
 rain_density_by_months = climas %>%
@@ -92,6 +92,20 @@ rain_density_by_months = climas %>%
 grid.arrange(rain_density_by_months, ncol=1)
 ```
 
-Analisando as distribuiÃ§Ãµes acima, vemos que o volume de chuva difere quanto ao mÃªs. Por exemplo, os meses de Novembro e Dezembro apresentam um volume
-de chuva bem mais baixo do que os outros meses, visto que a os dados se encontram concentrados no zero. Lembrando que tais meses estÃ£o relacionados com o
-fim da primavera e inÃ­cio do verÃ£o, relaÃ§Ã£o esta que explica o baixo volume de chuva nessa Ã©poca.
+Analisando as distribuições acima, vemos que o volume de chuva difere quanto ao mês. Por exemplo, os meses de Novembro e Dezembro apresentam um volume de chuva bem mais baixo do que os outros meses, visto que a os dados se encontram concentrados no zero. Lembrando que tais meses estão relacionados com o fim da primavera e início do verão, relação esta que explica o baixo volume de chuva nessa época.
+
+Agora, para expandir a análise da distribuição de chuvas vamos analisar a densidade de probabilidade em Campina Grande e João Pessoa separadamente. 
+
+```{r}
+
+rain_cidades_density_by_months = climas %>%
+                            ggplot(aes(x = chuva, y=..scaled.., fill = cidade)) + 
+                                  geom_vline(aes(xintercept=tmedia,  colour=cidade),
+                                               linetype="dashed", size=1) +
+                                geom_density(alpha = .4, position = "identity") +
+                                                  facet_wrap(~ mes)
+
+grid.arrange(rain_cidades_density_by_months)
+```
+
+Analisando as distribuições de cada cidade é possível perceber que João Pessoa tem uma variação maior na quantidade de chuvas que Campina Grande, apesar da média da quantidade de chuvas se parecida na maioria dos meses.
