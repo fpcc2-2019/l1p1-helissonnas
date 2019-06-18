@@ -1,5 +1,6 @@
 ---
 title: "Temperatura JP x CG"
+author: "Helisson Nascimento"
 output:
     html_document:
     df_print: paged
@@ -11,6 +12,7 @@ library(tidyverse)
 library(here)
 library(lubridate)
 library(ggbeeswarm)
+library(reshape2)
 theme_set(theme_bw())
 ```
 
@@ -25,24 +27,93 @@ glimpse(climas)
 
 ### Onde é mais quente?
 
+```{r}
 
-### As temperaturas máximas semanais (o pico do calor) são tão diferentes quanto as médias? Mais?  
+temp <- melt(climas, measure.vars = c('tmax','tmedia','tmin'))
+ggplot(temp, aes(x=NULL, y=value, fill=cidade)) + 
+    geom_boxplot() +
+    labs(title = 'Variação da Temperatura',
+         x = 'Cidades',
+         y = 'Temperatura') +
+    facet_wrap(~variable)
 
+```
 
-### Quais os meses mais quentes e mais frios? 
+Apesar do gráfico mostrar que as temperaturas médias e mínimas de *Campina Grande* serem menores que as de *João Pessoa*, ainda existe uma grande semelhança.
 
+```{r}
+
+temp <- temp[temp$ano >= 2016,]
+ggplot(temp, aes(x=semana, y=value, colour=cidade)) + 
+    geom_line() +
+    facet_wrap(~variable) +
+    labs(title = 'Variação da temperatura ao longo do tempo',
+         x = 'Data',
+         y = 'Temperatura (ºC)')
+
+```
+
+Com exceção das temperaturas máximas, as temperaturas médias e mínimas são diferentes. A análise, nesse caso, foi restrita aos anos dois de 2015, para que fosse possível ver as disparidades com uma menor variação ao longo do tempo.
 
 ### Qual foi o São João  mais frio de CG que está nos nossos dados?
 
+```{r}
 
+JUNHO = 6
+
+campina = climas %>%
+    filter(mes == JUNHO & cidade == "Campina Grande") %>%
+    group_by(ano) %>%
+    summarise(temp_media = mean(tmedia)) %>% 
+    mutate(mais_frio = if_else(temp_media == min(temp_media), TRUE, FALSE))
+
+ggplot(campina, aes(x=ano, y=temp_media)) +
+    geom_segment(aes(xend=ano, y=min(temp_media)- 0.3, yend=temp_media), color="darkgray", size=1) +
+    geom_point(aes(color=mais_frio), size=4, alpha=0.6) +
+    theme_light() +
+    theme(
+        panel.grid.major.y = element_blank(),
+        panel.border = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.x = element_text(angle = 40, hjust = 1), 
+        legend.position = "None"
+    ) +
+    labs(title="São João Mais Frio", 
+         y = "Temperatura em Cº",
+         x = "Ano")  + 
+    scale_x_continuous(breaks = 1995:2018)
+
+```
+A partir da visualização vamos que o São João mais frio em Campina Grande foi o de *2004*.
 
 ## Chuva
 
-### Quanto chove por semana em JP e CG?
-
-Como é a distribuição do volume de chuvas por semana em JP e CG? A chuva varia mais ou menos que a temperatura? O formato da distribuição é igual? 
-
 ### No geral, onde chove mais?
+
+```{r}
+
+climas %>%
+  group_by(cidade, ano) %>%
+  summarise(total_chuva = median(chuva)) %>%
+  ggplot(aes(x= ano,y = total_chuva, colour = cidade)) + 
+  geom_line()  +
+  scale_x_continuous(breaks = seq(1987,2018,2)) +
+  scale_y_continuous(breaks = seq(0,25,2)) +
+  labs(x = "Ano", y = "Chuva (mm)",colour = "Cidade")
+```
+Analisando a quantidade de chuva nas duas cidades entre __1987__ e __2017__, é possível concluir que em *João Pessoa* chove mais que em *Campina Grande*
 
 ### A distribuição é diferente em meses específicos? 
 
+```{r}
+chuvaMes <- climas %>% group_by(cidade, ano, mes) %>% summarise(chuva_cum = sum(chuva))
+chuvaMes <- chuvaMes[chuvaMes$ano > 2002,]
+ggplot(chuvaMes, aes(x=ano, y=chuva_cum, colour=cidade)) + 
+    geom_line() + 
+    facet_wrap(~factor(mes)) +
+    labs(title = 'Chuva/Mês',
+         x = 'Ano',
+         y = 'Nível de chuva (mm)')
+```
+
+Observa-se que o período de chuvas das duas cidades é igual, entre Abril e Julho.
